@@ -15,8 +15,8 @@ A SvelteKit application with a PostgreSQL database, powered by Drizzle ORM for m
 1. **Clone the Repository**
 
    ```sh
-   git clone https://github.com/akidi/basic_app
-   cd basic_app
+   git clone https://github.com/akidi/app-boilerplate
+   cd app-boilerplate
    ```
 
 2. **Run Setup Script**
@@ -42,8 +42,8 @@ A SvelteKit application with a PostgreSQL database, powered by Drizzle ORM for m
 1. **Clone the Repository** (if not already done)
 
    ```sh
-   git clone https://github.com/akidi/basic_app
-   cd basic_app
+   git clone https://github.com/akidi/app-boilerplate
+   cd app-boilerplate
    ```
 
 2. **Run Setup Script**
