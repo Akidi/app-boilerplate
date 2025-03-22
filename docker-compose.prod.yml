@@ -1,0 +1,70 @@
+services:
+  basic-app:
+    image: basic-app:prod
+    container_name: basic-app.prod
+    build:
+      context: ./app
+    ports:
+      - 80:3000
+    env_file:
+      - .env.prod
+    working_dir: /app
+    command: sh -c "node build/index.js"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
+    depends_on:
+      basic-app.db.prod:
+        condition: service_healthy
+    networks:
+      - basic-app.network
+      - basic-app.internal
+    
+
+  basic-app.db.prod:
+    image: postgres:17
+    container_name: basic-app.db.prod 
+    env_file:
+      - .env.prod
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./db/init.prod.sql:/docker-entrypoint-initdb.d/init.sql
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres", "-d", "postgres"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - basic-app.internal
+  
+  basic-app.migrate:
+    image: basic-app-migrate:prod
+    container_name: basic-app.migrate
+    build:
+      context: ./app
+      dockerfile: Dockerfile.migrate
+    env_file:
+      - .env.prod
+    depends_on:
+      basic-app.db.prod:
+        condition: service_healthy
+    networks:
+      - basic-app.internal
+
+networks:
+  basic-app.network:
+    name: basic-app.network
+    driver: bridge
+  basic-app.internal:
+    name: basic-app.internal
+    driver: bridge
+    internal: true
+
+volumes:
+  db_data:
+    driver: local
+    name: basic-app.db.prod
