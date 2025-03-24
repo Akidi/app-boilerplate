@@ -6,16 +6,16 @@ import { readDB, writeDB } from '$lib/server/db/';
 import { tables } from '$lib/server/db/schema/';
 import * as auth from '$lib/server/auth';
 import type { Actions, PageServerLoad } from './$types';
-
+import { getUserByUsername, getUsers, insertUser } from '$lib/server/db/queries/users';
 
 
 export const load: PageServerLoad = async (event) => {
 	if (event.locals.user) {
 		return redirect(302, '/demo/lucia');
 	}
-		return {
-			users: await readDB.select().from(tables.users)
-		};
+	return {
+		users: await getUsers()
+	};
 };
 
 export const actions: Actions = {
@@ -33,9 +33,8 @@ export const actions: Actions = {
 			return fail(400, { message: 'Invalid password (min 6, max 255 characters)' });
 		}
 
-		const results = await readDB.select().from(tables.users).where(eq(tables.users.username, username));
+		const existingUser = await getUserByUsername(username);
 
-		const existingUser = results.at(0);
 		if (!existingUser) {
 			return fail(400, { message: 'Incorrect username or password' });
 		}
@@ -78,7 +77,7 @@ export const actions: Actions = {
 		});
 
 		try {
-			await writeDB.insert(tables.users).values({ id: userId, username, passwordHash });
+			await insertUser({ id: userId, username, passwordHash });
 
 			const sessionToken = auth.generateSessionToken();
 			const session = await auth.createSession(sessionToken, userId);
