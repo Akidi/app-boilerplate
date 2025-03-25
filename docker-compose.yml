@@ -1,7 +1,7 @@
 services:
-  basic-app.dev:
-    image: basic-app:dev
-    container_name: basic-app.dev
+  app-boilerplate.dev:
+    image: app-boilerplate:dev
+    container_name: app-boilerplate.dev
     build:
       context: ./app
       target: development
@@ -21,16 +21,16 @@ services:
       retries: 5
     restart: unless-stopped
     depends_on:
-      basic-app.db.dev:
+      app-boilerplate.db.dev:
         condition: service_healthy
     networks:
-      - basic-app.network
-      - basic-app.internal
+      - app-boilerplate.network
+      - app-boilerplate.internal
     
 
-  basic-app.db.dev:
+  app-boilerplate.db.dev:
     image: postgres:17
-    container_name: basic-app.db.dev
+    container_name: app-boilerplate.db.dev
     ports:
       - 5432:5432
     env_file:
@@ -45,20 +45,20 @@ services:
       timeout: 10s
       retries: 5
     networks:
-      - basic-app.network
-      - basic-app.internal
+      - app-boilerplate.network
+      - app-boilerplate.internal
 
 networks:
-  basic-app.network:
-    name: basic-app.network
+  app-boilerplate.network:
+    name: app-boilerplate.network
     driver: bridge
-  basic-app.internal:
-    name: basic-app.internal
+  app-boilerplate.internal:
+    name: app-boilerplate.internal
     driver: bridge
     internal: true
 
 volumes:
   db_data:
     driver: local
-    name: basic-app.db.dev
+    name: app-boilerplate.db.dev
   node_modules:

@@ -1,5 +1,5 @@
 # setup.ps1 - Automates SvelteKit project setup for dev and prod
-$dbName = "basic-app.db"
+$dbName = "app-boilerplate.db"
 # Function to generate a random password
 function New-RandomPassword {
     param (
