@@ -1,12 +1,9 @@
 import { hash, verify } from '@node-rs/argon2';
 import { encodeBase32LowerCase } from '@oslojs/encoding';
 import { fail, redirect } from '@sveltejs/kit';
-import { eq } from 'drizzle-orm';
-import { readDB, writeDB } from '$lib/server/db/';
-import { tables } from '$lib/server/db/schema/';
 import * as auth from '$lib/server/auth';
 import type { Actions, PageServerLoad } from './$types';
-import { getUserByUsername, getUsers, insertUser } from '$lib/server/db/queries/users';
+import { getUserByUsername, getUsers, insertUser, deleteUser } from '$lib/server/db/queries/users';
 
 
 export const load: PageServerLoad = async (event) => {
@@ -23,6 +20,14 @@ export const actions: Actions = {
 		const formData = await event.request.formData();
 		const username = formData.get('username');
 		const password = formData.get('password');
+
+		if (!username || typeof username !== 'string') {
+			return fail(400, { message: 'Invalid username' });
+		}
+
+		if (!password || typeof password !== 'string') {
+			return fail(400, { message: 'Invalid password' });
+		}
 
 		if (!validateUsername(username)) {
 			return fail(400, {
@@ -60,6 +65,14 @@ export const actions: Actions = {
 		const username = formData.get('username');
 		const password = formData.get('password');
 
+		if (!username || typeof username !== 'string') {
+			return fail(400, { message: 'Invalid username' });
+		}
+
+		if (!password || typeof password !== 'string') {
+			return fail(400, { message: 'Invalid password' });
+		}
+
 		if (!validateUsername(username)) {
 			return fail(400, { message: 'Invalid username' });
 		}
@@ -77,7 +90,7 @@ export const actions: Actions = {
 		});
 
 		try {
-			await insertUser({ id: userId, username, passwordHash });
+				await insertUser({ id: userId, username, passwordHash });
 
 			const sessionToken = auth.generateSessionToken();
 			const session = await auth.createSession(sessionToken, userId);
@@ -85,6 +98,18 @@ export const actions: Actions = {
 		} catch (e) {
 			return fail(500, { message: 'An error has occurred', error: String(e) });
 		}
+		return redirect(302, '/demo/lucia');
+	},
+	delete: async (event) => {
+		const formData = await event.request.formData();
+		const id = formData.get('id');
+		if (!id) {
+			return fail(400, { message: 'No user ID provided' });
+		}
+		if (typeof id !== 'string') {
+			return fail(400, { message: 'Invalid user ID' });
+		}
+		await deleteUser(id);
 		return redirect(302, '/demo/lucia');
 	}
 };
@@ -96,15 +121,14 @@ function generateUserId() {
 	return id;
 }
 
-function validateUsername(username: unknown): username is string {
+function validateUsername(username: string): boolean {
 	return (
-		typeof username === 'string' &&
 		username.length >= 3 &&
 		username.length <= 31 &&
 		/^[a-z0-9_-]+$/.test(username)
 	);
 }
 
-function validatePassword(password: unknown): password is string {
-	return typeof password === 'string' && password.length >= 6 && password.length <= 255;
+function validatePassword(password: string): boolean {
+	return password.length >= 6 && password.length <= 255;
 }

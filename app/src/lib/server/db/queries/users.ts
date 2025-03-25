@@ -7,19 +7,8 @@ export const insertUser = async (newUser: NewUser): Promise<User> => {
   return user[0];
 };
 
-export const getUserByUsername = async (username: string): Promise<User | null> => {
-  const user = await readDB.select().from(users).where(eq(users.username, username));
-  return user[0] || null;
-};
-
-export const getUserById = async (id: string): Promise<User | null> => {
-  const user = await readDB.select().from(users).where(eq(users.id, id));
-  return user[0] || null  ;
-};
-
-export const createUser = async (newUser: NewUser): Promise<User> => {
-  const user = await writeDB.insert(users).values(newUser);
-  return user[0];
+export const getUsers = async (): Promise<User[]> => {
+  return await readDB.select().from(users);
 };
 
 export const updateUser = async (id: string, updatedUser: User): Promise<User> => {
@@ -32,7 +21,15 @@ export const deleteUser = async (id: string): Promise<User[]> => {
   return user[0];
 };
 
-export const getUsers = async (): Promise<User[]> => {
-  return await readDB.select().from(users);
+export const getUserByUsername = async (username: string): Promise<User | null> => {
+  const user = await readDB.select().from(users).where(eq(users.username, username));
+  return user[0] || null;
 };
+
+export const getUserById = async (id: string): Promise<User | null> => {
+  const user = await readDB.select().from(users).where(eq(users.id, id));
+  return user[0] || null  ;
+};
+
+
 

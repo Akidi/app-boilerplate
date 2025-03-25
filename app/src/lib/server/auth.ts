@@ -2,8 +2,9 @@ import type { RequestEvent } from '@sveltejs/kit';
 import { eq } from 'drizzle-orm';
 import { sha256 } from '@oslojs/crypto/sha2';
 import { encodeBase64url, encodeHexLowerCase } from '@oslojs/encoding';
-import { writeDB, readDB } from '$lib/server/db';
 import { tables, type NewSession } from '$lib/server/db/schema';
+import { insertSession, deleteSession, updateSession } from '$lib/server/db/queries/sessions';
+import { readDB } from '$lib/server/db';
 
 const DAY_IN_MS = 1000 * 60 * 60 * 24;
 
@@ -22,7 +23,7 @@ export async function createSession(token: string, userId: string) {
 		userId,
 		expiresAt: new Date(Date.now() + DAY_IN_MS * 30)
 	};
-	await writeDB.insert(tables.sessions).values(session);
+	await insertSession(session);
 	return session;
 }
 
@@ -45,17 +46,14 @@ export async function validateSessionToken(token: string) {
 
 	const sessionExpired = Date.now() >= session.expiresAt.getTime();
 	if (sessionExpired) {
-		await writeDB.delete(tables.sessions).where(eq(tables.sessions.id, session.id));
+		await deleteSession(session.id);
 		return { session: null, user: null };
 	}
 
 	const renewSession = Date.now() >= session.expiresAt.getTime() - DAY_IN_MS * 15;
 	if (renewSession) {
 		session.expiresAt = new Date(Date.now() + DAY_IN_MS * 30);
-		await writeDB
-			.update(tables.sessions)
-			.set({ expiresAt: session.expiresAt })
-			.where(eq(tables.sessions.id, session.id));
+		await updateSession(session.id, session.expiresAt);
 	}
 
 	return { session, user };
@@ -64,7 +62,7 @@ export async function validateSessionToken(token: string) {
 export type SessionValidationResult = Awaited<ReturnType<typeof validateSessionToken>>;
 
 export async function invalidateSession(sessionId: string) {
-	await writeDB.delete(tables.sessions).where(eq(tables.sessions.id, sessionId));
+	await deleteSession(sessionId);
 }
 
 export function setSessionTokenCookie(event: RequestEvent, token: string, expiresAt: Date) {
