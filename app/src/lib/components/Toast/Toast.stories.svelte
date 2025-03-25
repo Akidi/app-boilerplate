@@ -29,7 +29,10 @@
   });
 </script>
 
+<<<<<<< HEAD
 <!-- In your Storybook story (e.g., "Random Toast Generator") -->
+=======
+>>>>>>> 9a6bb8f (feat: add toast system with queuing, variants, and dismiss-all support)
 <Story name="Random Toast Generator">
   <div class="space-y-4">
     <button
