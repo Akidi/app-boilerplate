@@ -1,15 +1,30 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import type { SubmitFunction } from '@sveltejs/kit';
 	import type { ActionData, PageServerData } from './$types';
 
 	let { form, data }: { form: ActionData, data?: PageServerData } = $props();
 
 	let users = $derived(data?.users || []);
+
+	let creating = $state(false);
+	let deleting = $state([]);
+
+	const register: SubmitFunction = () => {
+		creating = true;
+
+		return async ({ update, result }) => {
+			await update();
+			console.log(result);
+			creating = false;
+
+		}
+	}
 </script>
 
 <h1 class="text-2xl font-bold mb-4">Login / Register</h1>
 
-<form method="post" action="?/login" use:enhance class="space-y-4 max-w-sm mb-8">
+<form method="post" action="?/login" use:enhance={register} class="space-y-4 max-w-sm mb-8">
 	<div class="flex flex-col">
 		<label for="username" class="mb-1 text-sm font-medium text-gray-700">Username</label>
 		<input id="username" name="username" class="px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring focus:border-blue-300" />
@@ -33,7 +48,7 @@
 	<table class="min-w-full divide-y divide-gray-200">
 		<thead class="bg-gray-50">
 			<tr>
-				<th scope="col" class="w-10 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">✖</th>
+				<th scope="col" class="w-10 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">&times;</th>
 				<th scope="col" class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Username</th>
 			</tr>
 		</thead>
@@ -43,7 +58,7 @@
 					<td class="text-center">
 						<form method="post" action="?/delete">
 							<input type="hidden" name="id" value={user.id} />
-							<button type="submit" class="text-red-500 hover:text-red-700 text-base font-bold">&times;</button>
+							<button class="delete" aria-label="Mark as complete."></button>
 						</form>
 					</td>
 					<td class="px-4 py-2 text-sm text-gray-800">{user.username}</td>
@@ -56,3 +71,22 @@
 		</tbody>
 	</table>
 </div>
+
+
+<style>
+	button.delete {
+		border: none;
+		background: url(remove.svg) no-repeat 50% 50%;
+		background-size: 1rem 1rem;
+		cursor: pointer;
+		height: 100%;
+		width: 1rem;
+		aspect-ratio: 1;
+		opacity: 0.5;
+		transition: opacity 0.2s;
+	}
+
+	button.delete:hover {
+		opacity: 1;
+	}
+</style>

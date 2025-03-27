@@ -4,10 +4,13 @@
   import { dev } from '$app/environment';
   import Header from '$lib/components/Header/Header.svelte';
   import { onMount } from 'svelte';
+  import Toast from '$lib/components/Toast/Toast.svelte';
 
   let { children } = $props();
 
   let title = "App Boilerplate";
+
+  
 
   // State for dropdown visibility
   let isDemoOpen = $state(false);
@@ -49,6 +52,8 @@
 			document.removeEventListener('keydown', handleKeydown);
     };
   });
+
+
 </script>
 
 <svelte:head>
@@ -108,3 +113,5 @@
 <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
   {@render children()}
 </main>
+
+<Toast />
