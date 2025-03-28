@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { Toasts, removeToast, type Toast } from "$lib/stores/toast.store"; // Adjust path
-  let timers = $state<Record<string, any>>({});
+  import { Toasts, removeToast, type Toast, ToastType } from "$lib/stores/toast.store"; // Adjust path
+  let timers = $state<Record<string, NodeJS.Timeout>>({});
 
   $effect(() => {
     $Toasts.active.forEach((toast: Toast) => {
@@ -24,7 +24,7 @@
       role="alert"
       aria-live="polite"
     >
-      {toast.message}
+      {@html toast.message}
       <button onclick={() => removeToast(toast.id)} class="ml-2">✕</button>
     </div>
   {/each}

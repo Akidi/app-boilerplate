@@ -1,9 +1,10 @@
 import { hash, verify } from '@node-rs/argon2';
 import { encodeBase32LowerCase } from '@oslojs/encoding';
-import { fail, redirect } from '@sveltejs/kit';
 import * as auth from '$lib/server/auth';
 import type { Actions, PageServerLoad } from './$types';
-import { getUserByUsername, getUsers, insertUser, deleteUser } from '$lib/server/db/queries/users';
+import { getUserByUsername, getUsers, insertUser, deleteUser, getUserById } from '$lib/server/db/queries/users';
+import { ToastType } from '$lib/stores/toast.store';
+import { redirect } from '@sveltejs/kit';
 
 
 export const load: PageServerLoad = async (event) => {
@@ -22,26 +23,49 @@ export const actions: Actions = {
 		const password = formData.get('password');
 
 		if (!username || typeof username !== 'string') {
-			return fail(400, { message: 'Invalid username' });
+			return {
+				toast: {
+					message: "Invalid Username",
+					type: ToastType.Error,
+				}
+			}
 		}
 
 		if (!password || typeof password !== 'string') {
-			return fail(400, { message: 'Invalid password' });
+			return {
+				toast: {
+					message: "Invalid Password",
+					type: ToastType.Error,
+				}
+			}
 		}
 
 		if (!validateUsername(username)) {
-			return fail(400, {
-				message: 'Invalid username (min 3, max 31 characters, alphanumeric only)'
-			});
+			return {
+				toast: {
+					message: "Invalid Username (min 3, max 31 alphanumeric characters.",
+					type: ToastType.Error,
+				}
+			}
 		}
 		if (!validatePassword(password)) {
-			return fail(400, { message: 'Invalid password (min 6, max 255 characters)' });
+			return {
+				toast: {
+					message: "Invalid Password (min 6, max 255 characters.",
+					type: ToastType.Error,
+				}
+			}
 		}
 
 		const existingUser = await getUserByUsername(username);
 
 		if (!existingUser) {
-			return fail(400, { message: 'Incorrect username or password' });
+			return {
+				toast: {
+					message: "Invalid Username and or Password.",
+					type: ToastType.Error,
+				}
+			}
 		}
 
 		const validPassword = await verify(existingUser.passwordHash, password, {
@@ -51,14 +75,24 @@ export const actions: Actions = {
 			parallelism: 1
 		});
 		if (!validPassword) {
-			return fail(400, { message: 'Incorrect username or password' });
+			return {
+				toast: {
+					message: "Invalid Username and or Password.",
+					type: ToastType.Error,
+				}
+			}
 		}
 
 		const sessionToken = auth.generateSessionToken();
 		const session = await auth.createSession(sessionToken, existingUser.id);
 		auth.setSessionTokenCookie(event, sessionToken, session.expiresAt);
 
-		return redirect(302, '/demo/lucia');
+		return {
+			toast: {
+				message: "Logged in successfully",
+				type: ToastType.Success,
+			}
+		}
 	},
 	register: async (event) => {
 		const formData = await event.request.formData();
@@ -66,18 +100,41 @@ export const actions: Actions = {
 		const password = formData.get('password');
 
 		if (!username || typeof username !== 'string') {
-			return fail(400, { message: 'Invalid username' });
+			return {
+				"toast": {
+					"message": "Invalid Username",
+					"type": ToastType.Error,
+				}
+			};
 		}
 
 		if (!password || typeof password !== 'string') {
-			return fail(400, { message: 'Invalid password' });
+			return {
+				status:400,
+				toast: {
+					message: "Invalid Password",
+					type: ToastType.Error,
+				}
+			}
 		}
 
 		if (!validateUsername(username)) {
-			return fail(400, { message: 'Invalid username' });
+			return {
+				status:400,
+				toast: {
+					message: "Invalid Username (min 3, max 31 alphanumeric characters.",
+					type: ToastType.Error,
+				}
+			}
 		}
 		if (!validatePassword(password)) {
-			return fail(400, { message: 'Invalid password' });
+			return {
+				status:400,
+				toast: {
+					message: "Invalid Password (min 6, max 255 characters.",
+					type: ToastType.Error,
+				}
+			}
 		}
 
 		const userId = generateUserId();
@@ -96,21 +153,62 @@ export const actions: Actions = {
 			const session = await auth.createSession(sessionToken, userId);
 			auth.setSessionTokenCookie(event, sessionToken, session.expiresAt);
 		} catch (e) {
-			return fail(500, { message: 'An error has occurred', error: String(e) });
+			return {
+				status: 500,
+				toast: {
+					message: `An uncaught error has occured \n Raw Error Message: ${String(e)}`,
+					type: ToastType.Error,
+				}
+			}
 		}
-		return redirect(302, '/demo/lucia');
+		return {
+			status: 200,
+			toast: {
+				message: "Logged in successfully",
+				type: ToastType.Success,
+			}
+		}
 	},
 	delete: async (event) => {
 		const formData = await event.request.formData();
 		const id = formData.get('id');
 		if (!id) {
-			return fail(400, { message: 'No user ID provided' });
+			return {
+				status:400,
+				toast: {
+					message: "No user ID provided.",
+					type: ToastType.Error,
+				}
+			};
 		}
 		if (typeof id !== 'string') {
-			return fail(400, { message: 'Invalid user ID' });
+			return {
+				status:400,
+				toast: {
+					message: "Invalid user ID.",
+					type: ToastType.Error,
+				}
+			}
 		}
-		await deleteUser(id);
-		return redirect(302, '/demo/lucia');
+		try {
+			const user = await deleteUser(id);
+			if (user) {
+				return {
+					status: 200,
+					toast: {
+						message: `${user.username} deleted successfully.`,
+						type: ToastType.Success,
+					}
+				}
+			}
+		} catch (e) {
+			return {
+				status: 500,
+				toast: {
+					message: `An uncaught error has occured:<br />Raw error message: ${String(e)}`
+				}
+			}
+		}
 	}
 };
 

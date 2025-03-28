@@ -2,29 +2,26 @@
 	import { enhance } from '$app/forms';
 	import type { SubmitFunction } from '@sveltejs/kit';
 	import type { ActionData, PageServerData } from './$types';
+	import { addToast } from '$lib/stores/toast.store';
 
-	let { form, data }: { form: ActionData, data?: PageServerData } = $props();
+	let { data }: { data?: PageServerData } = $props();
 
 	let users = $derived(data?.users || []);
 
-	let creating = $state(false);
-	let deleting = $state([]);
-
-	const register: SubmitFunction = () => {
-		creating = true;
-
+	const handleSubmit: SubmitFunction = () => {
 		return async ({ update, result }) => {
 			await update();
 			console.log(result);
-			creating = false;
-
+			if (result.type === "success" && result.data?.toast) {
+				addToast(result.data.toast)
+			}
 		}
 	}
 </script>
 
 <h1 class="text-2xl font-bold mb-4">Login / Register</h1>
 
-<form method="post" action="?/login" use:enhance={register} class="space-y-4 max-w-sm mb-8">
+<form method="post" action="?/login" use:enhance={handleSubmit} class="space-y-4 max-w-sm mb-8">
 	<div class="flex flex-col">
 		<label for="username" class="mb-1 text-sm font-medium text-gray-700">Username</label>
 		<input id="username" name="username" class="px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring focus:border-blue-300" />
@@ -39,11 +36,6 @@
 	</div>
 </form>
 
-{#if form?.message}
-	<p class="text-red-600 text-sm mb-6">{form.message}</p>
-{/if}
-
-
 <div class="overflow-x-auto rounded-md shadow-sm border border-gray-300">
 	<table class="min-w-full divide-y divide-gray-200">
 		<thead class="bg-gray-50">
@@ -56,7 +48,7 @@
 			{#each users as user}
 				<tr class="hover:bg-gray-50">
 					<td class="text-center">
-						<form method="post" action="?/delete">
+						<form method="post" action="?/delete" use:enhance={handleSubmit}>
 							<input type="hidden" name="id" value={user.id} />
 							<button class="delete" aria-label="Mark as complete."></button>
 						</form>

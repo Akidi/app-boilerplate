@@ -16,6 +16,12 @@ export type Toast = {
   duration?: number;
 }
 
+export type ToastInput = {
+  message: string;
+  type?: ToastType;
+  duration?: number;
+}
+
 export const Toasts = writable<{
   active: Toast[];
   queue: Toast[];  
@@ -24,14 +30,17 @@ export const Toasts = writable<{
   queue: [],
 });
 
-export const addToast = (toast: Partial<Toast>): void => {
+export const addToast = (toast: ToastInput): void => {
   const default_toast: Partial<Toast> = {
-    id: `toast_${crypto.randomUUID()}`,
     type: ToastType.Info,
     duration: 3000,
   };
-
-  const new_toast = {...default_toast, ...toast};
+  
+  const new_toast: Toast = {
+    id: `toast_${crypto.randomUUID()}`,
+    ...default_toast,
+    ...toast
+  };
 
   Toasts.update(state => {
     if (state.active.length < MAX_TOASTS_VISIBLE) return { active: [...state.active, new_toast], queue: state.queue };

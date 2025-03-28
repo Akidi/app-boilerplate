@@ -16,9 +16,12 @@ export const updateUser = async (id: string, updatedUser: User): Promise<User> =
   return user[0];
 };
 
-export const deleteUser = async (id: string): Promise<User[]> => {
-  const user = await writeDB.delete(users).where(eq(users.id, id));
-  return user[0];
+export const deleteUser = async (id: string): Promise<User | null> => {
+  const user = await getUserById(id);
+  if (user) {
+    await writeDB.delete(users).where(eq(users.id, id));
+  }
+  return user;
 };
 
 export const getUserByUsername = async (username: string): Promise<User | null> => {
