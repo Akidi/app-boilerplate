@@ -1,12 +1,23 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import type { SubmitFunction } from '@sveltejs/kit';
 	import type { PageServerData } from './$types';
+	import { addToast } from '$lib/stores/toast.store';
 
 	let { data }: { data: PageServerData } = $props();
+
+	const handleSubmit: SubmitFunction = () => {
+		return async ({ update, result }) => {
+			await update();
+			if (result.type === "success" && result.data?.toast) {
+				addToast(result.data.toast);
+			}
+		}
+	}
 </script>
 
 <h1>Hi, {data.user.username}!</h1>
 <p>Your user ID is {data.user.id}.</p>
-<form method="post" action="?/logout" use:enhance>
+<form method="post" action="?/logout" use:enhance={handleSubmit}>
 	<button>Sign out</button>
 </form>

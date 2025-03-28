@@ -16,6 +16,4 @@ type ToastActive = ToastItem[];
 export interface ToastQueue {
   items: ToastItems;
   active: ToastActive;
-  idCounter: number;
-  MAX_VISIBLE: number;
 }
