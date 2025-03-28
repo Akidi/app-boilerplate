@@ -11,7 +11,7 @@
 
   let { store = Toasts, position = 'NE' } = $props<{ store?: typeof Toasts, position?: ToastPosition }>();
 
-  const positions = {
+  const positions: Record<string, string> = {
     NW: 'top-5 left-5',
     N: 'top-5 left-1/2 -translate-x-1/2',
     NE: 'top-5 right-5',
@@ -22,7 +22,7 @@
     W: 'top-1/2 left-5 -translate-y-1/2'
   };
 
-  const colors = {
+  const colors: Record<string, string> = {
     [ToastType.Info]: 'bg-blue-600',
     [ToastType.Success]: 'bg-green-600',
     [ToastType.Warning]: 'bg-yellow-500',
