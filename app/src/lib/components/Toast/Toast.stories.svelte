@@ -1,9 +1,8 @@
 <script module lang="ts">
   import { defineMeta } from '@storybook/addon-svelte-csf';
-  import type { ToastType } from './Toast.types';
+  import { ToastType } from './Toast.types';
   import { writable } from 'svelte/store';
   import Toast from './Toast.svelte';
-	import { ToastType } from '$lib/stores/toast.store';
 
   const mockToasts = writable<{active: Toast[]; queue: Toast[]}>({
     active: [],
@@ -30,5 +29,5 @@
 </script>
 
 <Story name="Default">
-  <Toast store={mockToasts} />
+  <Toast />
 </Story>
