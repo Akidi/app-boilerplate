@@ -1,5 +1,15 @@
 # setup.ps1 - Automates SvelteKit project setup for dev and prod
-$dbName = "app-boilerplate.db"
+
+# At the top of setup.ps1, after $dbName
+param([string]$AppName = "app-boilerplate")
+
+# Update Docker Compose files
+$composeFiles = @("./docker-compose.yml", "./docker-compose.prod.yml")
+foreach ($file in $composeFiles) {
+    (Get-Content $file) -replace "app-boilerplate", $AppName | Set-Content $file
+}
+
+$dbName = "$AppName.db"
 # Function to generate a random password
 function New-RandomPassword {
     param (
