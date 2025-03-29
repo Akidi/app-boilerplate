@@ -1,65 +1,66 @@
 import { writable } from "svelte/store";
+import type { Toast, ToastInput } from "$lib/components/Toast/Toast.types";
+import { ToastType } from "$lib/components/Toast/Toast.types";
 
 const MAX_TOASTS_VISIBLE = 5;
 
-export enum ToastType {
-  Info = "info",
-  Success = "success",
-  Warning = "warning",
-  Error = "error",
-}
-
-export type Toast = {
-  id: string;
-  message: string;
-  type?: ToastType;
-  duration?: number;
-}
-
-export type ToastInput = {
-  message: string;
-  type?: ToastType;
-  duration?: number;
-}
-
-export const Toasts = writable<{
+interface ToastStore {
   active: Toast[];
-  queue: Toast[];  
-}>({
-  active: [],
-  queue: [],
-});
-
-export const addToast = (toast: ToastInput): void => {
-  const default_toast: Partial<Toast> = {
-    type: ToastType.Info,
-    duration: 3000,
-  };
-  
-  const new_toast: Toast = {
-    id: `toast_${crypto.randomUUID()}`,
-    ...default_toast,
-    ...toast
-  };
-
-  Toasts.update(state => {
-    if (state.active.length < MAX_TOASTS_VISIBLE) return { active: [...state.active, new_toast], queue: state.queue };
-    return { active: state.active, queue: [...state.queue, new_toast] };
-  })
+  queue: Toast[];
 }
 
-export const removeToast = (id: string): void => {
-  Toasts.update(state => {
-    const filtered = state.active.filter(toast => toast.id !== id);
-    if (state.queue.length > 0) {
-      const nextQueue = state.queue.slice(0, -1);
-      const nextToast = state.queue[state.queue.length -1];
-      return {
-        active: [...filtered, nextToast],
-        queue: nextQueue,
+const defaultToast: Omit<Toast, 'id' | 'message'> = {
+  type: ToastType.Info,
+  duration: 5000,
+  expireInQueue: false,
+};
+
+const createToastStore = () => {
+  const { subscribe, update } = writable<ToastStore>({ active: [], queue: [] });
+
+  const timers: Record<string, ReturnType<typeof setTimeout>> = {};
+
+  const setTimer = (toast: Toast, fromQueue = false) => {
+    if (timers[toast.id]) clearTimeout(timers[toast.id]);
+    if (toast.duration && (!fromQueue || toast.expireInQueue)) {
+      timers[toast.id] = setTimeout(() => remove(toast.id), toast.duration);
+    }
+  };
+
+  const add = (toastInput: ToastInput & { message: string }) => {
+    const toast: Toast = {
+      id: `toast_${crypto.randomUUID()}`,
+      ...defaultToast,
+      ...toastInput,
+    };
+
+    update(({ active, queue }) => {
+      if (active.length < MAX_TOASTS_VISIBLE) {
+        setTimer(toast);
+        return { active: [...active, toast], queue };
       }
+      return { active, queue: [...queue, toast] };
+    });
+  };
+
+  const remove = (id: string) => {
+    if (timers[id]) {
+      clearTimeout(timers[id]);
+      delete timers[id];
     }
 
-    return { active: filtered, queue: state.queue }
-  });
-}
+    update(({ active, queue }) => {
+      const newActive = active.filter(toast => toast.id !== id);
+      if (queue.length > 0) {
+        const [nextToast, ...newQueue] = queue;
+        setTimer(nextToast, true);
+        return { active: [...newActive, nextToast], queue: newQueue };
+      }
+      return { active: newActive, queue };
+    });
+  };
+
+  return { subscribe, add, remove };
+};
+
+export const toastStore = createToastStore();

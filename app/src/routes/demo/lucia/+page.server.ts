@@ -1,6 +1,7 @@
 import * as auth from '$lib/server/auth';
 import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
+import { ToastType } from '$lib/components/Toast/Toast.types';
 
 export const load: PageServerLoad = async (event) => {
 	if (!event.locals.user) {
@@ -17,6 +18,11 @@ export const actions: Actions = {
 		await auth.invalidateSession(event.locals.session.id);
 		auth.deleteSessionTokenCookie(event);
 
-		return redirect(302, '/demo/lucia/login');
+		return {
+			toast: {
+				message: "You are logged out",
+				type: ToastType.Info,
+			}
+		};
 	}
 };

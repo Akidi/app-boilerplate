@@ -2,9 +2,9 @@ import { hash, verify } from '@node-rs/argon2';
 import { encodeBase32LowerCase } from '@oslojs/encoding';
 import * as auth from '$lib/server/auth';
 import type { Actions, PageServerLoad } from './$types';
-import { getUserByUsername, getUsers, insertUser, deleteUser, getUserById } from '$lib/server/db/queries/users';
-import { ToastType } from '$lib/stores/toast.store';
+import { getUserByUsername, getUsers, insertUser, deleteUser } from '$lib/server/db/queries/users';
 import { redirect } from '@sveltejs/kit';
+import { ToastType } from '$lib/components/Toast/Toast.types';
 
 
 export const load: PageServerLoad = async (event) => {
@@ -156,7 +156,7 @@ export const actions: Actions = {
 			return {
 				status: 500,
 				toast: {
-					message: `An uncaught error has occured \n Raw Error Message: ${String(e)}`,
+					message: `An uncaught error has occured\nRaw Error Message: ${String(e)}`,
 					type: ToastType.Error,
 				}
 			}
@@ -172,7 +172,7 @@ export const actions: Actions = {
 	delete: async (event) => {
 		const formData = await event.request.formData();
 		const id = formData.get('id');
-		if (!id) {
+		if (!id || typeof id !== 'string') {
 			return {
 				status:400,
 				toast: {
@@ -181,15 +181,7 @@ export const actions: Actions = {
 				}
 			};
 		}
-		if (typeof id !== 'string') {
-			return {
-				status:400,
-				toast: {
-					message: "Invalid user ID.",
-					type: ToastType.Error,
-				}
-			}
-		}
+
 		try {
 			const user = await deleteUser(id);
 			if (user) {
@@ -201,11 +193,18 @@ export const actions: Actions = {
 					}
 				}
 			}
+			return {
+				status: 400,
+				toast: {
+					message: "Invalid user ID",
+					type: ToastType.Warning
+				}
+			}
 		} catch (e) {
 			return {
 				status: 500,
 				toast: {
-					message: `An uncaught error has occured:<br />Raw error message: ${String(e)}`
+					message: `An uncaught error has occured:\nRaw error message: ${String(e)}`
 				}
 			}
 		}
@@ -223,7 +222,7 @@ function validateUsername(username: string): boolean {
 	return (
 		username.length >= 3 &&
 		username.length <= 31 &&
-		/^[a-z0-9_-]+$/.test(username)
+		/^[A-Za-z0-9_-]+$/.test(username)
 	);
 }
 

@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import type { SubmitFunction } from '@sveltejs/kit';
-	import type { ActionData, PageServerData } from './$types';
-	import { addToast } from '$lib/stores/toast.store';
+	import type { PageServerData } from './$types';
+	import { toastStore } from '$lib/stores/toast.store'
 
 	let { data }: { data?: PageServerData } = $props();
 
@@ -11,9 +11,9 @@
 	const handleSubmit: SubmitFunction = () => {
 		return async ({ update, result }) => {
 			await update();
-			console.log(result);
+			
 			if (result.type === "success" && result.data?.toast) {
-				addToast(result.data.toast)
+				toastStore.add(result.data.toast)
 			}
 		}
 	}
