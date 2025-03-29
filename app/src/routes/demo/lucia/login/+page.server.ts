@@ -3,6 +3,10 @@ import { encodeBase32LowerCase } from '@oslojs/encoding';
 import * as auth from '$lib/server/auth';
 import type { Actions, PageServerLoad } from './$types';
 import { getUserByUsername, getUsers, insertUser, deleteUser } from '$lib/server/db/queries/users';
+<<<<<<< HEAD
+=======
+import { ToastType } from '$lib/stores/toast.store';
+>>>>>>> stash
 import { redirect } from '@sveltejs/kit';
 import { ToastType } from '$lib/components/Toast/Toast.types';
 

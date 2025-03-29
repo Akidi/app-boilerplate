@@ -1,10 +1,15 @@
 <script lang="ts">
+<<<<<<< HEAD
+=======
+  import { Toasts, removeToast, ToastType } from "$lib/stores/toast.store";
+>>>>>>> stash
   import { renderTemplate } from "$lib/utils/template";
   import { fly, fade } from "svelte/transition";
   import InfoIcon from "$lib/components/Icons/InfoIcon.svelte";
   import SuccessIcon from "$lib/components/Icons/SuccessIcon.svelte";
   import WarningIcon from "$lib/components/Icons/WarningIcon.svelte";
   import ErrorIcon from "$lib/components/Icons/ErrorIcon.svelte";
+<<<<<<< HEAD
 	import { ToastPosition, ToastType } from "$lib/components/Toast/Toast.types";
 	import { toastStore } from "$lib/stores/toast.store";
 
@@ -24,6 +29,25 @@
   };
 
   const colors: Record<ToastType, string> = {
+=======
+
+  export type ToastPosition = 'NW' | 'N' | 'NE' | 'E' | 'SE' | 'S' | 'SW' | 'W';
+
+  let { store = Toasts, position = 'NE' } = $props<{ store?: typeof Toasts, position?: ToastPosition }>();
+
+  const positions: Record<string, string> = {
+    NW: 'top-5 left-5',
+    N: 'top-5 left-1/2 -translate-x-1/2',
+    NE: 'top-5 right-5',
+    E: 'top-1/2 right-5 -translate-y-1/2',
+    SE: 'bottom-5 right-5',
+    S: 'bottom-5 left-1/2 -translate-x-1/2',
+    SW: 'bottom-5 left-5',
+    W: 'top-1/2 left-5 -translate-y-1/2'
+  };
+
+  const colors: Record<string, string> = {
+>>>>>>> stash
     [ToastType.Info]: 'bg-blue-600',
     [ToastType.Success]: 'bg-green-600',
     [ToastType.Warning]: 'bg-yellow-500',
@@ -32,7 +56,11 @@
 </script>
 
 <div class="fixed z-50 flex flex-col gap-3 {positions[position]}">
+<<<<<<< HEAD
   {#each $toastStore.active as toast (toast.id)}
+=======
+  {#each $store.active as toast (toast.id)}
+>>>>>>> stash
     <div
       in:fly={{ y: -10, duration: 250 }}
       out:fade={{ duration: 250 }}

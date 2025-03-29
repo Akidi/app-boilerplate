@@ -71,9 +71,13 @@
 		background: url(remove.svg) no-repeat 50% 50%;
 		background-size: 1rem 1rem;
 		cursor: pointer;
-		height: 100%;
-		width: 1rem;
+		height: 1.5rem;
+		width: 1.5rem;
 		aspect-ratio: 1;
+		display:flex;
+		align-items: center;
+		justify-content: center;
+		padding: 0;
 		opacity: 0.5;
 		transition: opacity 0.2s;
 	}

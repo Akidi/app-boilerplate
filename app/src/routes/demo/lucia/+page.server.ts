@@ -1,7 +1,11 @@
 import * as auth from '$lib/server/auth';
 import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
+<<<<<<< HEAD
 import { ToastType } from '$lib/components/Toast/Toast.types';
+=======
+import { ToastType } from '$lib/stores/toast.store';
+>>>>>>> stash
 
 export const load: PageServerLoad = async (event) => {
 	if (!event.locals.user) {
